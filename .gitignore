@@ -1,0 +1,4 @@
+# Ignore files and directories that should not be committed
+*.swp
+.DS_Store
+output/

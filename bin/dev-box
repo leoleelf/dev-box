@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Get the directory where this script is located
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# Define the path to the dev-box script
+DEV_BOX="$DIR/../lib/__init__.sh"
+
+# Check if the dev-box script exists
+if [ ! -f "$DEV_BOX" ]; then
+    echo "ERROR: dev-box script not found. Please run 'make install' to install the script."
+    exit 1
+fi
+
+# Parse the command-line arguments
+COMMAND="$1"
+shift
+ARGS="$@"
+
+# Call the appropriate command function
+case "$COMMAND" in
+    init)
+        "$DEV_BOX" init $ARGS
+        ;;
+    run)
+        "$DEV_BOX" run $ARGS
+        ;;
+    *)
+        echo "Usage: dev-box [init|run]"
+        exit 1
+        ;;
+esac
+
+# Exit with the exit code of the command function
+exit $?
