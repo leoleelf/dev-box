@@ -63,8 +63,29 @@ function firebase_deploy {
     fi
     exit 0
   fi
+  if [ ! -d "$gcpProjectName" ]; then
+    gcloud config set project $gcpProjectName
+  fi
+  cd "$GCP_SOURCE_PATH/$repositoryPath"
+  pwd
   source ~/.bashrc
   node -v
+  if [ -z "${repositoryProjectName##*'fron'*}" ] && [ -z "${repositoryProjectName##*'end'*}" ] ; then
+    # Replace `npm ci` with `npm i` since GCP Shell may clear the node_modules files
+    rm -rf node_modules
+    HUSKY=0 npm i
+    set -e
+
+    if [ -z "${gcpProjectName##*'admin'}" ]; then
+      npm run build -- -env=admin
+    elif [ -z "${gcpProjectName##*'prod'}" ]; then
+      npm run build -- -env=prod
+    else
+      npm run build -- -env=dev
+    fi
+    firebase use "$gcpProjectName"
+    firebase deploy --only hosting
+  fi
   echo "End."
   exit 1
 }
