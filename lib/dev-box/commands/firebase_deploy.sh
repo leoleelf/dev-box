@@ -15,7 +15,7 @@ function firebase_deploy {
         local repositoryProjectName=${repositoryPathArray[1]}
         ;;
       n )
-        local nodeVersion="${OPTARG}"
+        local nodeConfig="${OPTARG}"
         ;;
       t )
         local toolVersion="${OPTARG}"
@@ -69,6 +69,19 @@ function firebase_deploy {
   cd "$GCP_SOURCE_PATH/$repositoryPath"
   pwd
   source ~/.bashrc
+  if [ ! -z "$nodeConfig" ]; then
+    if [ -z "${nodeConfig##*','*}" ]; then
+      IFS=',' read -ra arr <<< "$nodeConfig"
+      nodeVersion="${arr[0]}"
+      export NVM_DIR="${arr[1]}"
+    else
+      nodeVersion="$nodeConfig"
+      export NVM_DIR="/usr/local/nvm"
+    fi
+    source $NVM_DIR/nvm.sh
+    nvm install "$nodeVersion"
+    nvm use "$nodeVersion"
+  fi
   node -v
   if [ -z "${repositoryProjectName##*'fron'*}" ] && [ -z "${repositoryProjectName##*'end'*}" ] ; then
     # Replace `npm ci` with `npm i` since GCP Shell may clear the node_modules files
