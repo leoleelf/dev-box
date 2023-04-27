@@ -3,7 +3,7 @@
 GCP_SOURCE_PATH="~/source/github"
 
 function firebase_deploy {
-  while getopts "g:r:n:t:f:s:uc" opt; do
+  while getopts "g:r:n:t:d:s:uc" opt; do
     case ${opt} in
       g )
         local gcpProjectName="${OPTARG}"
@@ -20,8 +20,8 @@ function firebase_deploy {
       t )
         local toolVersion="${OPTARG}"
         ;;
-      f )
-        local functions="${OPTARG}"
+      d )
+        local deployTargets="${OPTARG}"
         ;;
       s )
         GCP_SOURCE_PATH="${OPTARG}"
@@ -45,6 +45,7 @@ function firebase_deploy {
   echo ${repositoryPath}
   echo ${repositoryUserName}
   echo ${repositoryProjectName}
+  echo ${deployTargets}
   echo ${nodeVersion}
   echo ${toolVersion}
   echo ${isUpdateSourceMode}
@@ -98,6 +99,18 @@ function firebase_deploy {
     fi
     firebase use "$gcpProjectName"
     firebase deploy --only hosting
+  elif [ -z "${repositoryProjectName##*'api'}" ]; then
+    cd functions
+    rm -rf node_modules
+    NODE_ENV=production
+    HUSKY=0
+    # Run `yarn` instead of `npm` since the latter failed.
+    yarn install --ignore-engines
+    chmod -R +x .
+    cd ..
+    npm cache clean --force
+    firebase use "$gcpProjectName"
+    firebase deploy --only "$deployTargets"
   fi
   echo "End."
   exit 1
